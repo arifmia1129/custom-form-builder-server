@@ -4,7 +4,6 @@ import config from "./config";
 import { errorLogger, infoLogger } from "./shared/logger";
 import { Server } from "http";
 import { RedisClient } from "./shared/redis";
-import subscribeEvents from "./app/events";
 
 let server: Server;
 
@@ -31,7 +30,6 @@ async function startServer() {
 
 async function main() {
   await RedisClient.connect();
-  subscribeEvents();
   connectToDatabase();
   startServer();
 }
