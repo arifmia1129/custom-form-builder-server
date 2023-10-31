@@ -17,5 +17,5 @@ const uploadFile = catchAsync(async (req: Request, res: Response) => {
 });
 
 export const FileController = {
-  uploadFile,
+  uploadFile: uploadFile,
 };

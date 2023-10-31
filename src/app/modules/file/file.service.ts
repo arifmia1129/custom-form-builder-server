@@ -1,10 +1,8 @@
-import {
-  ICloudinaryResponse,
-  IUploadFile,
-} from "../../../shared/interface/common";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { ICloudinaryResponse } from "../../../shared/interface/common";
 import { FileUploadHelper } from "../../../utils/uploader";
 
-const uploadFile = async (file: IUploadFile) => {
+const uploadFile = async (file: any) => {
   const res: ICloudinaryResponse | undefined =
     await FileUploadHelper.uploadToCloudinary(file);
 

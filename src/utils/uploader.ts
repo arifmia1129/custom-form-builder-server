@@ -1,42 +1,49 @@
+/* eslint-disable no-undefined */
 import { v2 as cloudinary } from "cloudinary";
 import multer from "multer";
-import * as fs from "fs";
-import { ICloudinaryResponse, IUploadFile } from "../shared/interface/common";
+import { ICloudinaryResponse } from "../shared/interface/common";
+import config from "../config";
+import { Express } from "express";
 
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, "uploads/");
-  },
-  filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-    cb(null, file.originalname + "-" + uniqueSuffix);
+const storage = multer.memoryStorage();
+
+const upload = multer({
+  storage: storage,
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype.startsWith("image/")) {
+      cb(null, true);
+    } else {
+      cb(new Error("Only image files are allowed!"));
+    }
   },
 });
 
-const upload = multer({ storage: storage });
-
 cloudinary.config({
-  cloud_name: "dg2ibc23a",
-  api_key: "326747289144147",
-  api_secret: "2IF7uGWOq5IkRBHnWHVN2-7Y-BM",
+  cloud_name: config.cloudinary.cloud_name,
+  api_key: config.cloudinary.api_key,
+  api_secret: config.cloudinary.api_secret,
 });
 
 const uploadToCloudinary = async (
-  file: IUploadFile,
+  file: Express.Multer.File,
 ): Promise<ICloudinaryResponse | undefined> => {
-  return new Promise((resolve, reject) => {
-    cloudinary.uploader.upload(
-      file.path,
-      (error: Error, result: ICloudinaryResponse) => {
-        fs.unlinkSync(file.path);
-        if (error) {
-          reject(error);
-        } else {
-          resolve(result);
-        }
-      },
-    );
-  });
+  try {
+    const result = await new Promise<ICloudinaryResponse>((resolve, reject) => {
+      cloudinary.uploader
+        .upload_stream((error: Error, result: ICloudinaryResponse) => {
+          if (error) {
+            reject(error);
+          } else {
+            resolve(result);
+          }
+        })
+        .end(file.buffer);
+    });
+
+    return result;
+  } catch (error) {
+    return undefined;
+  }
 };
 
 export const FileUploadHelper = {
